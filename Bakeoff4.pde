@@ -1,8 +1,11 @@
 import java.util.ArrayList;
 import java.util.Collections;
 import ketai.sensors.*;
+import ketai.camera.*;
+import processing.video.*;
 
 KetaiSensor sensor;
+KetaiCamera cam;
 
 float cursorX, cursorY;
 float light = 0; 
@@ -14,7 +17,7 @@ private class Target
   int action = 0;
 }
 
-int trialCount = 5; //this will be set higher for the bakeoff
+int trialCount = 2; //** it was 5 before. this will be set higher for the bakeoff
 int trialIndex = 0;
 ArrayList<Target> targets = new ArrayList<Target>();
 
@@ -28,12 +31,14 @@ void setup() {
   size(480, 480); //you can change this to be fullscreen
   frameRate(60);
   sensor = new KetaiSensor(this);
-  //println("is orientation available: " + sensor.isOrientationAvailable());
-  //println("is gyroscope available: " + sensor.isGyroscopeAvailable());
-  //println("is rotation vector available: " + sensor.isRotationVectorAvailable());
-  //println("is mag field available: " + sensor.isMagenticFieldAvailable());
-  //println("is game rotation available: " + sensor.isGameRotationAvailable());
   sensor.start();
+  
+  cam = new KetaiCamera(this, 640, 480, 15);
+  // uhh
+  println("camera list: " +  cam.list());
+  cam.setCameraID(1); // front facing
+  cam.start();
+  
   orientation(LANDSCAPE);
 
   rectMode(CENTER);
@@ -130,11 +135,107 @@ void drawTwo() {
   fill(0);
   rect(0, 0, 2*width, 2*height);
   
-  textFont(createFont("Arial", 30));
+  textFont(createFont("Arial", 20));
   fill(255); //white
-  text("Trial " + (index+1) + " of " + trialCount, width/2, 100);
-  text("Action " + action, width/2, 140);
+  text("Trial " + (index+1) + " of " + trialCount, width/2, 30);
+  //text("Action " + action, width/2, 70);
+  
+  textFont(createFont("Arial", 30));
+  if (action == 0) { // for now, green
+    fill(0,255,0);
+    rect(0, height, 2*width, height);
+    fill(0);
+    text("show me GREEN", width/2, 350);
+  }
+  else { // for now, red
+    fill(255,0,0);
+    rect(0, height, 2*width, height);
+    fill(0);
+    text("show me RED", width/2, 350);
+  }
+  
+  color avgCol = getAvgColor();
+  fill(avgCol);
+  rect(60, 180, 2*width - 120, 100);
+  
+  textFont(createFont("Arial", 20));
+  fill(255); //white
+  text("current color = " + red(avgCol) + ", " + green(avgCol) + ", " + blue(avgCol), width/2, 200);
+  
+  checkColor(avgCol, action);
+  
 }
+
+void checkColor(color col, int action) {
+  color target;
+  color other;
+  if (action == 0) {
+    target = color(0,255,0);
+    other = color(255,0,0);
+  }
+  else {
+    target = color(255,0,0);
+    other = color(0,255,0);
+  }
+  
+  float tolerance = 130; // hmm....
+  float dist_to_target = colorDist(col, target);
+  float dist_to_other = colorDist(col, other);
+  
+  if (dist_to_target < tolerance) // advance trial
+  {
+    trialIndex++;
+    isTarget = true;
+  }
+  else if (dist_to_other < tolerance) // go back a trial
+  {
+    trialIndex--;
+    isTarget = true;
+  }
+  
+  textFont(createFont("Arial", 20));
+  fill(0);
+  text("dist to target = " + dist_to_target, width/2, 390);
+  text("dist to other = " + dist_to_other, width/2, 410);
+  
+}
+
+float colorDist(color c1, color c2) { // from wikipedia
+  return sqrt(
+    pow((red(c1) - red(c2)), 2) +
+    pow((green(c1) - green(c2)), 2) +
+    pow((blue(c1) - blue(c2)), 2)
+  );
+}
+
+color getAvgColor() {
+  if (cam.isStarted()) {
+    int red_sum = 0;
+    int green_sum = 0;
+    int blue_sum = 0;
+    int total = 0;
+    
+    for (int x = 310; x < 330; x++) {
+      for (int y = 230; y < 250; y++) {
+        color pixelColor = cam.get(x, y);
+        red_sum += red(pixelColor);
+        green_sum += green(pixelColor);
+        blue_sum += blue(pixelColor);
+        total++;
+      }
+    }
+    
+    int r = red_sum / total;
+    int g = green_sum / total;
+    int b = blue_sum / total;
+    
+    return color(r,g,b);
+  }
+  
+  return color(0,0,0);
+}
+
+
 
 void draw() {
   int index = trialIndex;
@@ -194,18 +295,19 @@ void onAccelerometerEvent(float x, float y, float z)
 
   if (userDone || index>=targets.size())
     return;
+  
+  if (!isTarget) return;
 
   cursorX = (width/2)+y*30; //cented to window and scaled
   cursorY = (height/2)+x*30; //cented to window and scaled
 
-  Target t = targets.get(index);
-  if (t==null)
-    return;
 }
 
+//void onLightEvent(float v) //this just updates the light value
+//{
+//  light = v;
+//}
 
-
-void onLightEvent(float v) //this just updates the light value
-{
-  light = v;
+void onCameraPreviewEvent() {
+   cam.read();
 }
