@@ -128,6 +128,8 @@ boolean inRect(int x, int y, int w, int h) {
   return cursorX > x && cursorX < x + w && cursorY > y && cursorY < y + h;
 }
 
+color col0 = color(0,255,0); // for now, green
+color col1 = color(255,0,0); // for now, red
 void drawTwo() {
   int index = trialIndex;
   int action = targets.get(index).action;
@@ -141,14 +143,14 @@ void drawTwo() {
   //text("Action " + action, width/2, 70);
   
   textFont(createFont("Arial", 30));
-  if (action == 0) { // for now, green
-    fill(0,255,0);
+  if (action == 0) {
+    fill(col0);
     rect(0, height, 2*width, height);
     fill(0);
     text("show me GREEN", width/2, 350);
   }
-  else { // for now, red
-    fill(255,0,0);
+  else {
+    fill(col1);
     rect(0, height, 2*width, height);
     fill(0);
     text("show me RED", width/2, 350);
@@ -170,12 +172,12 @@ void checkColor(color col, int action) {
   color target;
   color other;
   if (action == 0) {
-    target = color(0,255,0);
-    other = color(255,0,0);
+    target = col0;
+    other = col1;
   }
   else {
-    target = color(255,0,0);
-    other = color(0,255,0);
+    target = col1;
+    other = col0;
   }
   
   float tolerance = 130; // hmm....
@@ -215,6 +217,7 @@ color getAvgColor() {
     int blue_sum = 0;
     int total = 0;
     
+    // just sample some pixels in the center i guess
     for (int x = 310; x < 330; x++) {
       for (int y = 230; y < 250; y++) {
         color pixelColor = cam.get(x, y);
