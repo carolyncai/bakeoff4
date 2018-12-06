@@ -17,7 +17,7 @@ private class Target
   int action = 0;
 }
 
-int trialCount = 2; //** it was 5 before. this will be set higher for the bakeoff
+int trialCount = 5; //** it was 5 before. this will be set higher for the bakeoff
 int trialIndex = 0;
 ArrayList<Target> targets = new ArrayList<Target>();
 
@@ -36,10 +36,12 @@ void setup() {
   cam = new KetaiCamera(this, 640, 480, 15);
   // uhh
   println("camera list: " +  cam.list());
-  cam.setCameraID(1); // front facing
+  cam.setCameraID(0); // back facing
+  //cam.setCameraID(1); // front facing
   cam.start();
   
-  orientation(LANDSCAPE);
+  //orientation(LANDSCAPE);
+  orientation(PORTRAIT);
 
   rectMode(CENTER);
   textFont(createFont("Arial", 40)); //sets the font to Arial size 20
@@ -60,6 +62,7 @@ void setup() {
 void drawFour() {
   int index = trialIndex;
   int target = targets.get(index).target;
+  
   // top
   if (target == 0) fill(0,255,0);
   else fill(180);
@@ -84,9 +87,9 @@ void drawFour() {
   fill(255); //white
   text("Trial " + (index+1) + " of " + trialCount, width/2, 100);
   
-  fill(255, 0, 0);
-  ellipse(cursorX, cursorY, 50, 50);
+  text("ax = " + ax + " , ay = " + ay, width/2, 140);
   
+  //
   checkFour();
 }
 
@@ -94,29 +97,38 @@ void checkFour() {
   int index = trialIndex;
   int target = targets.get(index).target;
   
+  float tol = 4;
+  
   // top = 0
-  if (inRect(0,10,2*width,20)) {
+  // ay < 0
+  if (ay < -1*tol) {
     if (target == 0)
       isTarget = false; //move on to second part
     else if (trialIndex > 0)
       trialIndex--; //move back one trial as penalty!
   }
+  
   // right = 1
-  else if (inRect(width - 10,0,20,2*height)) {
+  // ax < 0
+  else if (ax < -1*tol) {
     if (target == 1)
       isTarget = false; //move on to second part
     else if (trialIndex > 0)
       trialIndex--; //move back one trial as penalty!
   }
+  
   // bottom = 2
-  else if (inRect(0,height - 10,2*width,20)) {
+  // ay > 0
+  else if (ay > tol) {
     if (target == 2)
       isTarget = false; //move on to second part
     else if (trialIndex > 0)
       trialIndex--; //move back one trial as penalty!
   }
+  
   // left = 3
-  else if (inRect(10,0,20,2*height)) {
+  // ax > 0
+  else if (ax > tol) {
     if (target == 3)
       isTarget = false; //move on to second part
     else if (trialIndex > 0)
@@ -191,7 +203,7 @@ void checkColor(color col, int action) {
   }
   else if (dist_to_other < tolerance) // go back a trial
   {
-    trialIndex--;
+    if (trialIndex > 0) trialIndex--;
     isTarget = true;
   }
   
@@ -292,17 +304,24 @@ void draw() {
   //  text("DOWN", width/2, 150);
 }
 
+float ax = 0;
+float ay = 0;
+float az = 0;
 void onAccelerometerEvent(float x, float y, float z)
 {
-  int index = trialIndex;
-
-  if (userDone || index>=targets.size())
-    return;
   
-  if (!isTarget) return;
+  ax = x;
+  ay = y;
+  az = z;
+  //int index = trialIndex;
 
-  cursorX = (width/2)+y*30; //cented to window and scaled
-  cursorY = (height/2)+x*30; //cented to window and scaled
+  //if (userDone || index>=targets.size())
+  //  return;
+  
+  //if (!isTarget) return;
+
+  //cursorX = (width/2)+y*30; //cented to window and scaled
+  //cursorY = (height/2)+x*30; //cented to window and scaled
 
 }
 
