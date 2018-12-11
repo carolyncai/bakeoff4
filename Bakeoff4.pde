@@ -64,32 +64,31 @@ void drawFour() {
   int target = targets.get(index).target;
   
   // top
-  if (target == 0) fill(0,255,0);
+  if (target == 0) fill(0,0,255);
   else fill(180);
-  rect(0,10,2*width,20);
+  rect(0,10,2*width,30);
   
   // right
-  if (target == 1) fill(0,255,0);
+  if (target == 1) fill(0,0,255);
   else fill(180);
-  rect(width - 10,0,20,2*height);
+  rect(width - 10,0,30,2*height);
   
   // bottom
-  if (target == 2) fill(0,255,0);
+  if (target == 2) fill(0,0,255);
   else fill(180);
-  rect(0,height - 10,2*width,20);
+  rect(0,height - 10,2*width,30);
   
   // left
-  if (target == 3) fill(0,255,0);
+  if (target == 3) fill(0,0,255);
   else fill(180);
-  rect(10,0,20,2*height);
+  rect(10,0,30,2*height);
+    
+  // just for the visual to help emphasize the convention
+  fill(255);
+  ellipse(cursorX, cursorY, 50, 50);
   
-  textFont(createFont("Arial", 30));
-  fill(255); //white
-  text("Trial " + (index+1) + " of " + trialCount, width/2, 100);
+  println("ax = " + ax + " , ay = " + ay, width/2, 140);
   
-  text("ax = " + ax + " , ay = " + ay, width/2, 140);
-  
-  //
   checkFour();
 }
 
@@ -146,41 +145,45 @@ void drawTwo() {
   int index = trialIndex;
   int action = targets.get(index).action;
   
-  fill(0);
-  rect(0, 0, 2*width, 2*height);
-  
-  textFont(createFont("Arial", 20));
-  fill(255); //white
-  text("Trial " + (index+1) + " of " + trialCount, width/2, 30);
-  //text("Action " + action, width/2, 70);
-  
-  textFont(createFont("Arial", 30));
+  // fill the background of the screen with the target color
   if (action == 0) {
     fill(col0);
-    rect(0, height, 2*width, height);
-    fill(0);
-    text("show me GREEN", width/2, 350);
+    rect(0, 0, 2*width, 2*height);
   }
   else {
     fill(col1);
-    rect(0, height, 2*width, height);
-    fill(0);
-    text("show me RED", width/2, 350);
+    rect(0, 0, 2*width, 2*height);
   }
   
-  color avgCol = getAvgColor();
-  fill(avgCol);
-  rect(60, 180, 2*width - 120, 100);
-  
-  textFont(createFont("Arial", 20));
-  fill(255); //white
-  text("current color = " + red(avgCol) + ", " + green(avgCol) + ", " + blue(avgCol), width/2, 200);
-  
-  checkColor(avgCol, action);
+  //checkColor(avgCol, action);
   
 }
 
-void checkColor(color col, int action) {
+void checkColor() {
+  int index = trialIndex;
+  int action = targets.get(index).action;
+  
+  // don't show the text until we actually hit this part of the trial
+  textFont(createFont("Arial", 30));
+  fill(0);
+  if (action == 0) {
+    text("show me GREEN", width/2, 100);
+  }
+  else {
+    text("show me RED", width/2, 100);
+  }
+  
+  // once we hit this part of the trial, display a box in the middle of the screen that has the current average color in it
+  rectMode(CENTER);
+  color col = getAvgColor();
+  fill(col);
+  rect(width/2, height/2, 200, 200);
+  rectMode(CORNER);
+  
+  textFont(createFont("Arial", 20));
+  fill(255); //white
+  println("current color = " + red(col) + ", " + green(col) + ", " + blue(col), width/2, 200);
+  
   color target;
   color other;
   if (action == 0) {
@@ -209,8 +212,8 @@ void checkColor(color col, int action) {
   
   textFont(createFont("Arial", 20));
   fill(0);
-  text("dist to target = " + dist_to_target, width/2, 390);
-  text("dist to other = " + dist_to_other, width/2, 410);
+  println("dist to target = " + dist_to_target, width/2, 390);
+  println("dist to other = " + dist_to_other, width/2, 410);
   
 }
 
@@ -276,32 +279,13 @@ void draw() {
     return;
   }
 
+  drawTwo();
   if (isTarget) drawFour();
-  else drawTwo();
-
-  //for (int i=0; i<4; i++)
-  //{
-  //  if (targets.get(index).target==i)
-  //    fill(0, 255, 0);
-  //  else
-  //    fill(180, 180, 180);
-  //  ellipse(300, i*150+100, 100, 100);
-  //}
-
-  //if (light>proxSensorThreshold)
-  //  fill(180, 0, 0);
-  //else
-  //  fill(255, 0, 0);
-  //ellipse(cursorX, cursorY, 50, 50);
-
-  //fill(255);//white
-  //text("Trial " + (index+1) + " of " +trialCount, width/2, 50);
-  //text("Target #" + (targets.get(index).target)+1, width/2, 100);
-
-  //if (targets.get(index).action==0)
-  //  text("UP", width/2, 150);
-  //else
-  //  text("DOWN", width/2, 150);
+  else checkColor();
+  
+  textFont(createFont("Arial", 20));
+  fill(180);
+  text("Trial " + (index+1) + " of " + trialCount, width/2, 50);
 }
 
 float ax = 0;
@@ -313,22 +297,17 @@ void onAccelerometerEvent(float x, float y, float z)
   ax = x;
   ay = y;
   az = z;
-  //int index = trialIndex;
+  int index = trialIndex;
 
-  //if (userDone || index>=targets.size())
-  //  return;
+  if (userDone || index>=targets.size())
+    return;
   
-  //if (!isTarget) return;
+  if (!isTarget) return;
 
-  //cursorX = (width/2)+y*30; //cented to window and scaled
-  //cursorY = (height/2)+x*30; //cented to window and scaled
+  cursorX = (width/2)+y*30; //cented to window and scaled
+  cursorY = (height/2)+x*30; //cented to window and scaled
 
 }
-
-//void onLightEvent(float v) //this just updates the light value
-//{
-//  light = v;
-//}
 
 void onCameraPreviewEvent() {
    cam.read();
