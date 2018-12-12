@@ -304,8 +304,8 @@ void onAccelerometerEvent(float x, float y, float z)
   
   if (!isTarget) return;
 
-  cursorX = (width/2)+y*30; //cented to window and scaled
-  cursorY = (height/2)+x*30; //cented to window and scaled
+  cursorX = (width/2)+x*30; //cented to window and scaled
+  cursorY = (height/2)+y*30; //cented to window and scaled
 
 }
 
